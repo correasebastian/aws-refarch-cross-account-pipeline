@@ -1,4 +1,4 @@
-
+tutorial : https://aws.amazon.com/blogs/devops/aws-building-a-secure-cross-account-continuous-delivery-pipeline/
 elkykelyn 198744248339
 corream account number 611689786579
 

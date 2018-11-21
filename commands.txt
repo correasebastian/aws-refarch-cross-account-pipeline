@@ -1,0 +1,69 @@
+
+elkykelyn 198744248339
+corream account number 611689786579
+
+dev, tools and test are the same account --> 198744248339
+prod account is  611689786579
+
+aws cloudformation deploy --stack-name pre-reqs \
+--template-file ToolsAcct/pre-reqs.yaml --parameter-overrides \
+DevAccount=198744248339 TestAccount=198744248339 \
+ProductionAccount=611689786579 \
+--profile ky-elkykelyn-admin --region us-east-1
+
+kmsarn: arn:aws:kms:us-east-1:198744248339:key/8a98c512-cf5b-41fa-906b-f0d31b91fac8
+s3 pre-reqs-artifactbucket-1t66axbq8mz0z
+
+
+aws cloudformation deploy --stack-name toolsacct-codepipeline-role \
+--template-file DevAccount/toolsacct-codepipeline-codecommit.yaml \
+--capabilities CAPABILITY_NAMED_IAM \
+--parameter-overrides ToolsAccount=198744248339 \
+ CMKARN=arn:aws:kms:us-east-1:198744248339:key/8a98c512-cf5b-41fa-906b-f0d31b91fac8 \
+--profile ky-elkykelyn-admin --region us-east-1
+
+create rolesand policies  to be assumen in test account ()same dev account
+
+aws cloudformation deploy --stack-name toolsacct-codepipeline-cloudformation-role \
+--template-file TestAccount/toolsacct-codepipeline-cloudformation-deployer.yaml \
+--capabilities CAPABILITY_NAMED_IAM \
+--parameter-overrides ToolsAccount=198744248339 \
+ CMKARN=arn:aws:kms:us-east-1:198744248339:key/8a98c512-cf5b-41fa-906b-f0d31b91fac8  \
+S3Bucket=pre-reqs-artifactbucket-1t66axbq8mz0z \
+--profile ky-elkykelyn-admin --region us-east-1
+
+
+create roles and policies to be assumen in PROD account 
+aws cloudformation deploy --stack-name toolsacct-codepipeline-cloudformation-role \
+--template-file TestAccount/toolsacct-codepipeline-cloudformation-deployer.yaml \
+--capabilities CAPABILITY_NAMED_IAM \
+--parameter-overrides ToolsAccount=198744248339 \
+ CMKARN=arn:aws:kms:us-east-1:198744248339:key/8a98c512-cf5b-41fa-906b-f0d31b91fac8  \
+S3Bucket=pre-reqs-artifactbucket-1t66axbq8mz0z \
+--profile ky-corream-admin --region us-east-1
+
+
+create the pipeline in the tools account  = samde dev account remmeber
+
+aws cloudformation deploy --stack-name sample-lambda-pipeline \
+--template-file ToolsAcct/code-pipeline.yaml \
+--parameter-overrides DevAccount=198744248339 TestAccount=198744248339 \
+ProductionAccount=611689786579 CMKARN=arn:aws:kms:us-east-1:198744248339:key/8a98c512-cf5b-41fa-906b-f0d31b91fac8 \
+S3Bucket=pre-reqs-artifactbucket-1t66axbq8mz0z --capabilities CAPABILITY_NAMED_IAM \
+--profile ky-elkykelyn-admin --region us-east-1
+
+CodeBuildCOnition=true
+
+aws cloudformation deploy --stack-name pre-reqs \
+--template-file ToolsAcct/pre-reqs.yaml \
+--parameter-overrides CodeBuildCondition=true \
+--profile ky-elkykelyn-admin --region us-east-1
+
+
+CrossAccountCondition
+
+aws cloudformation deploy --stack-name sample-lambda-pipeline \
+--template-file ToolsAcct/code-pipeline.yaml \
+--parameter-overrides CrossAccountCondition=true \
+--capabilities CAPABILITY_NAMED_IAM \
+--profile ky-elkykelyn-admin --region us-east-1
